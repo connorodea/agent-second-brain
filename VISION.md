@@ -1,8 +1,8 @@
 # Connor's Second Brain — Vision
 
-> One-sentence north star: every thought Connor captures — spoken, typed, filmed, photographed, or handwritten — becomes routed, structured, actioned data automatically, so brilliant ideas turn into shipped work instead of dust six months later.
+> One-sentence north star: every thought Connor captures — spoken, typed, filmed, photographed, or handwritten — and every half-built project he starts, becomes routed, structured, actioned data automatically, so brilliant ideas and brilliant code both turn into shipped, monetized work instead of dust.
 
-_Last updated: 2026-08-07 · Version: v2_
+_Last updated: 2026-08-07 · Version: v3_
 
 ## What it is
 
@@ -16,11 +16,11 @@ Connor alone, running many concurrent projects (aiwholesail, Renovo, Reelwire, L
 
 ## The problem
 
-Capture is cheap; everything after capture is the bottleneck. Voice memos never get re-listened to. Typed fragments drown in chat history. Nothing today closes the loop from "I said/wrote/photographed a thought" to "there is now a task, a note, or a calendar event that represents it." Three separate half-built attempts at this (RightNote, smartfolder-Genius, and a never-deployed agent-second-brain fork) existed simultaneously without Connor realizing it — the scatter itself was making the problem worse.
+Capture is cheap; everything after capture is the bottleneck — and this shows up twice in Connor's life. First, at the thought level: voice memos never get re-listened to, typed fragments drown in chat history, nothing closes the loop from "I said/wrote/photographed a thought" to "there is now a task that represents it." Three separate half-built attempts at fixing this (RightNote, smartfolder-Genius, and a never-deployed agent-second-brain fork) existed simultaneously without Connor realizing it. Second, at the project level: the same pattern one layer up — Connor starts building a genuinely good idea, gets pulled toward the next genuinely good idea before shipping it, and ends up with a `~/Developer` and a GitHub account full of brilliant, dormant, zero-to-one-but-never-launched projects (this session alone surfaced four: RightNote, smartfolder-Genius, agent-second-brain, and the ELOHIME/OpenSource-Ai-Glasses/screenrec-studio/sonyobs/pipecat-adjacent scatter). Todoist itself has accumulated project after project the same way. Nothing today surfaces "this is 80% done and worth finishing" or "these two dormant projects actually solve the same problem" or "here's a way to make money from what you already built."
 
 ## Core value proposition
 
-Say it, type it, film it, or photograph it — it becomes typed, linked knowledge automatically, and anything actionable becomes a real task you'll actually see, without Connor doing the filing.
+Say it, type it, film it, or photograph it — it becomes typed, linked knowledge automatically, and anything actionable becomes a real task you'll actually see. And the same engine watches Connor's own project portfolio (code + Todoist) the same way it watches his thoughts: surfacing dormant-but-valuable projects, connecting related ones, and proposing how to ship and monetize them — without Connor doing the filing, the archaeology, or the go-to-market thinking himself.
 
 ## Principles / non-negotiables
 
@@ -38,6 +38,8 @@ Say it, type it, film it, or photograph it — it becomes typed, linked knowledg
 3. **Handwritten note capture.** Photo taken on phone → either AirDropped to a watched local folder (local-first, needs a small new bridge) or forwarded to the Telegram bot directly (works today, zero build) → read and filed like any other photo.
 4. **Actionable triage → Todoist.** New: after autograph classifies a card, anything actionable is transformed into a well-formed Todoist task via the existing `todoist` skill (project auto-resolved), instead of only living in the vault waiting to be found.
 5. **Self-managed reminders and nightly processing.** Already built: plain-language cron ("remind me Friday at 3pm"), a 21:00 daily classification/report pass, self-healing watchdog.
+6. **Project portfolio scan → synthesis → ship reminders.** New: a periodic scan across `~/Developer`, Connor's GitHub account, and his Todoist projects, filed into the same graph as a `Project` entity type. Surfaces dormancy ("last touched 3 weeks ago, looked 80% done"), cross-project connections ("these three projects solve overlapping problems"), and reminders to revive/ship — using the same self-scheduled cron already built for #5, not a new scheduler.
+7. **Monetization/distribution ideation.** New: for each surfaced project, the engine proposes unconventional ways to ship, distribute, and monetize it — favoring creative angles over the obvious "SaaS + Stripe" default — and files the ideas as linked cards against that project, not as a one-off chat answer that evaporates.
 
 ## System modules
 
@@ -47,12 +49,14 @@ Say it, type it, film it, or photograph it — it becomes typed, linked knowledg
 - **Inbox/triage → Todoist bridge (new)** — the other missing piece: turns "actionable" autograph cards into real Todoist tasks via the existing `todoist` skill.
 - **smartfolder-Genius** (`~/Developer/smartfolder-Genius`) — demoted to parts donor. Its content-provider code is worth porting into the local capture bridge; it does not run as its own live engine. Its Filer-inspired "assign an agent to any folder" idea is preserved as a Later bet, not built now.
 - **myvoice** (`~/Developer/myvoice`) — explicitly out of scope. Different job (real-time dictation into text fields, not async capture-and-file). Left alone.
+- **Portfolio Intelligence Scanner (new)** — the project-level counterpart to capture ingestion: walks `~/Developer` + `gh repo list connorodea` + Todoist projects, extracts state (last activity, apparent completeness, description), and hands it to the same nightly-processing/autograph pipeline that already classifies notes — reusing infrastructure rather than building a second brain for projects.
 
 ## Data model implications
 
 - `autograph`'s existing typed-card schema (note/contact/project/CRM, five decay tiers) is the memory model — not rebuilt.
 - New: a **triage state** on cards (`untriaged` → `actionable` → `dispatched-to-todoist` / `reference-only`) so nothing actionable silently stays untriaged.
 - New: a **capture-source** field so cards know whether they came from Telegram or RightNote (useful once RightNote grows more input modes).
+- New: a **`Project` card type** — repo path/URL, last-activity date, dormancy score, related-projects links, and a list of monetization/distribution ideas — added to the same graph `autograph` already maintains for notes/contacts.
 
 ## UI/UX implications
 
@@ -64,24 +68,27 @@ Say it, type it, film it, or photograph it — it becomes typed, linked knowledg
 
 **In:** Deploy agent-second-brain for real (currently forked but never run). Bridge RightNote's existing voice notes into its ingestion pipeline. Build the triage → Todoist dispatch bridge so actionable captures reliably become tasks.
 
-**Out (for now):** RightNote video/text/handwritten-photo capture modes; a full custom task-management system replacing Todoist; Filer-parity features (trust tiers, folder delegation, chat panel, MCP plugin registry) inherited from smartfolder-Genius's original scope; pulling myvoice into this pipeline.
+**Out (for now):** RightNote video/text/handwritten-photo capture modes; a full custom task-management system replacing Todoist; Filer-parity features (trust tiers, folder delegation, chat panel, MCP plugin registry) inherited from smartfolder-Genius's original scope; pulling myvoice into this pipeline; the Portfolio Intelligence Scanner (real, wanted soon, but not part of proving the core capture→triage loop first).
 
 ## Roadmap (vision → milestones)
 
 - **Now:** Get agent-second-brain actually running (bootstrap + Telegram bot + vault), bridge RightNote's voice notes in as a second capture channel, ship the triage → Todoist dispatch bridge. This is the whole original ask, done properly instead of three separate half-builds.
-- **Next:** RightNote grows video/text/handwritten-photo capture (porting smartfolder-Genius's content providers for local ingestion); refine triage confidence-gating.
+- **Next:** Two tracks, roughly in parallel once Now is proven: (a) RightNote grows video/text/handwritten-photo capture (porting smartfolder-Genius's content providers for local ingestion), refine triage confidence-gating; (b) the **Portfolio Intelligence Scanner** — scan `~/Developer` + GitHub + Todoist, surface dormant/connected projects, generate ship-reminders and monetization ideas. Called out as high-priority within Next given how acutely Connor feels this specific pain.
 - **Later:** Per Connor's explicit direction — **build a fully custom task-management system that replaces Todoist entirely**, native to this engine instead of bridging out to Todoist's API. Also later: Filer-parity general "any folder gets an agent" features, revisited as their own vision if still wanted once the core loop is proven.
 
 ## How to decompose this
 
-Run `/northstar` against this doc to produce `GOALS.md`: goals should track the roadmap milestones above (Deploy the Engine → RightNote Bridge → Triage-to-Todoist → Multi-Modal Capture → Custom Task System). Track execution in a new Todoist project once the goal structure exists.
+Run `/northstar` against this doc to produce `GOALS.md`: goals should track the roadmap milestones above (Deploy the Engine → RightNote Bridge → Triage-to-Todoist → Multi-Modal Capture → Portfolio Intelligence Scanner → Custom Task System). Track execution in a new Todoist project once the goal structure exists.
 
 ## Open questions
 
 - **Vault destination:** agent-second-brain defaults to Obsidian. Connor also has `Deriv8`, his own AI-agent-controllable PKM fork, with its own vision/goals already in flight. Recommendation: keep Obsidian for the MVP since `autograph` is built specifically for it; revisit a Deriv8 integration later rather than disrupting two projects' roadmaps at once.
 - **Deployment target:** upstream agent-second-brain assumes a cheap VPS (systemd services included). Connor has `hetznerCO` already provisioned with an established CI/CD pattern. Recommendation: deploy there when ready, rather than running only on the Mac — but this hasn't been confirmed.
 - **Handwritten-note path:** AirDrop-to-local-folder (consistent with RightNote's local-first stance, needs a small new bridge) vs. forward-to-Telegram-bot (works today, zero build, but leaves the local-first principle). Recommendation: start with the Telegram fallback now, build the local bridge when RightNote's other capture modes are built anyway.
+- **Portfolio scan scope:** this session found relevant projects in `~/Developer`, `~/Documents/Codex` outputs, and `gh repo list connorodea` — but not, say, other machines or private gists. Recommendation: start with those three sources; widen only if it misses something real.
+- **Monetization ideation tone:** Connor explicitly wants unconventional distribution/monetization angles, not default "add a paywall" thinking. Worth a dedicated prompt/rubric once this module is actually designed, rather than leaving it to per-run improvisation.
 
 ## Changelog
 
+- 2026-08-07 v3 — Added the Project Portfolio Intelligence dimension: scanning `~/Developer` + GitHub + Todoist for dormant/connected projects, with ship-reminders and monetization/distribution ideation, reusing the same engine and nightly-processing infrastructure as note capture. Placed as high-priority Next, not Now, to keep the MVP boundary honest.
 - 2026-08-07 v2 — Consolidated three previously-independent efforts (RightNote, smartfolder-Genius, and this repo, agent-second-brain) into one vision after discovering all three existed simultaneously. Promoted agent-second-brain to primary engine (most mature, already solves capture/memory/reminders/self-healing). Added the inbox/triage-to-Todoist bridge as new work, with a full custom task-system rebuild named as an explicit Later goal. Superseded the v1 draft written earlier the same day in `smartfolder-Genius/VISION.md`.
