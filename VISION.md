@@ -1,0 +1,87 @@
+# Connor's Second Brain — Vision
+
+> One-sentence north star: every thought Connor captures — spoken, typed, filmed, photographed, or handwritten — becomes routed, structured, actioned data automatically, so brilliant ideas turn into shipped work instead of dust six months later.
+
+_Last updated: 2026-08-07 · Version: v2_
+
+## What it is
+
+A single, always-on personal capture-and-action engine, built on **agent-second-brain** (forked from `smixs/agent-second-brain`): one persistent Claude Code session that reads everything Connor sends it — voice, photos, documents, video, forwarded posts — and files it into a typed knowledge graph (`autograph`) in an Obsidian vault, with Ebbinghaus-decay memory tiers, self-scheduled reminders, nightly processing, and a self-healing watchdog. Capture happens two ways: **Telegram** (already built, works today) and **RightNote** (Connor's native macOS menu-bar recorder — voice today, video/text/handwritten-photo next), both feeding the same engine. A new **inbox/triage layer** sits between capture and action: it guarantees that anything actionable graduates into a real, executable Todoist task instead of quietly aging in the vault.
+
+This consolidates four scattered efforts that were solving the same problem independently: `RightNote` (native capture, built 2026-08-06), `smartfolder-Genius` (a forked folder-watching engine, built 2026-08-06), `agent-second-brain` (a mature, already-working second brain, forked 2026-07-16 and never deployed), and the original ask that started this session (a "voice notes daemon"). `agent-second-brain` is the most complete of the four and becomes the core engine; the others contribute capture surfaces and reusable parts rather than competing as separate live systems.
+
+## Who it's for
+
+Connor alone, running many concurrent projects (aiwholesail, Renovo, Reelwire, Lock Rooms, TradingAgents, Deriv8, opencut-fork, and more), who generates ideas faster than he can file them. The specific failure mode this exists to kill: recording a genius idea, never processing it, and rediscovering it six months later — brilliant and wasted.
+
+## The problem
+
+Capture is cheap; everything after capture is the bottleneck. Voice memos never get re-listened to. Typed fragments drown in chat history. Nothing today closes the loop from "I said/wrote/photographed a thought" to "there is now a task, a note, or a calendar event that represents it." Three separate half-built attempts at this (RightNote, smartfolder-Genius, and a never-deployed agent-second-brain fork) existed simultaneously without Connor realizing it — the scatter itself was making the problem worse.
+
+## Core value proposition
+
+Say it, type it, film it, or photograph it — it becomes typed, linked knowledge automatically, and anything actionable becomes a real task you'll actually see, without Connor doing the filing.
+
+## Principles / non-negotiables
+
+- **One engine, not three.** All capture channels feed one memory/action system. No parallel "second brain" implementations running at once.
+- **The vault is the source of truth.** Everything lands as plain markdown Connor can read and keep forever, independent of any agent still existing.
+- **Interactive session, not headless billing.** Per agent-second-brain's existing v3.0 design: one long-lived Claude Code session, no headless `claude -p` in the hot path — runs on the subscription Connor already pays for, not per-token API bills.
+- **Actionable never just decays.** Memory-tier decay is fine for reference material; anything the triage layer classifies as actionable must reach Todoist (or its eventual replacement), not just wait to be randomly resurfaced.
+- **Local-first where it matters.** RightNote's captures don't require Telegram as a relay; raw audio/video handling follows RightNote's existing "no upload, no account" stance where practical.
+- **Reuse before rebuild.** Todoist (via the existing `todoist` skill) stays the task system of record for now — see MVP boundary. Don't rebuild what already works until the reason to replace it is concrete.
+
+## Main workflows
+
+1. **Telegram capture → autograph → vault.** Already built and working (upstream v3.0.3): voice/photo/doc/video/forwarded-post → typed card → linked into the graph.
+2. **RightNote capture → autograph → vault.** New: bridge RightNote's local `.m4a` output (and later video/text/handwritten-photo) into the same ingestion pipeline Telegram uses today, instead of building a second memory system.
+3. **Handwritten note capture.** Photo taken on phone → either AirDropped to a watched local folder (local-first, needs a small new bridge) or forwarded to the Telegram bot directly (works today, zero build) → read and filed like any other photo.
+4. **Actionable triage → Todoist.** New: after autograph classifies a card, anything actionable is transformed into a well-formed Todoist task via the existing `todoist` skill (project auto-resolved), instead of only living in the vault waiting to be found.
+5. **Self-managed reminders and nightly processing.** Already built: plain-language cron ("remind me Friday at 3pm"), a 21:00 daily classification/report pass, self-healing watchdog.
+
+## System modules
+
+- **agent-second-brain engine** (`~/Developer/agent-second-brain`) — the core: Telegram bot, persistent Claude Code session driver, `autograph` memory engine, cron/reminders, nightly processor, watchdog. Mature, untouched fork, not yet deployed.
+- **RightNote** (`~/Developer/RightNote`) — native macOS capture surface. Today: voice only. Next: video, text, handwritten-photo ingestion. Feeds the engine instead of running its own processing.
+- **Local capture bridge (new)** — the piece that doesn't exist yet: gets RightNote's local files into agent-second-brain's ingestion pipeline. Likely a lightweight watcher plus reuse of `smartfolder-Genius`'s modality-aware content providers (audio/video/image/PDF, already written upstream) rather than writing extraction from scratch.
+- **Inbox/triage → Todoist bridge (new)** — the other missing piece: turns "actionable" autograph cards into real Todoist tasks via the existing `todoist` skill.
+- **smartfolder-Genius** (`~/Developer/smartfolder-Genius`) — demoted to parts donor. Its content-provider code is worth porting into the local capture bridge; it does not run as its own live engine. Its Filer-inspired "assign an agent to any folder" idea is preserved as a Later bet, not built now.
+- **myvoice** (`~/Developer/myvoice`) — explicitly out of scope. Different job (real-time dictation into text fields, not async capture-and-file). Left alone.
+
+## Data model implications
+
+- `autograph`'s existing typed-card schema (note/contact/project/CRM, five decay tiers) is the memory model — not rebuilt.
+- New: a **triage state** on cards (`untriaged` → `actionable` → `dispatched-to-todoist` / `reference-only`) so nothing actionable silently stays untriaged.
+- New: a **capture-source** field so cards know whether they came from Telegram or RightNote (useful once RightNote grows more input modes).
+
+## UI/UX implications
+
+- Telegram stays the primary chat interface (already built).
+- RightNote stays a minimal menu-bar recorder — no processing UI added there.
+- No new UI required for the MVP; the "you'll see it in Todoist" loop is the actionable-item UX.
+
+## MVP boundary
+
+**In:** Deploy agent-second-brain for real (currently forked but never run). Bridge RightNote's existing voice notes into its ingestion pipeline. Build the triage → Todoist dispatch bridge so actionable captures reliably become tasks.
+
+**Out (for now):** RightNote video/text/handwritten-photo capture modes; a full custom task-management system replacing Todoist; Filer-parity features (trust tiers, folder delegation, chat panel, MCP plugin registry) inherited from smartfolder-Genius's original scope; pulling myvoice into this pipeline.
+
+## Roadmap (vision → milestones)
+
+- **Now:** Get agent-second-brain actually running (bootstrap + Telegram bot + vault), bridge RightNote's voice notes in as a second capture channel, ship the triage → Todoist dispatch bridge. This is the whole original ask, done properly instead of three separate half-builds.
+- **Next:** RightNote grows video/text/handwritten-photo capture (porting smartfolder-Genius's content providers for local ingestion); refine triage confidence-gating.
+- **Later:** Per Connor's explicit direction — **build a fully custom task-management system that replaces Todoist entirely**, native to this engine instead of bridging out to Todoist's API. Also later: Filer-parity general "any folder gets an agent" features, revisited as their own vision if still wanted once the core loop is proven.
+
+## How to decompose this
+
+Run `/northstar` against this doc to produce `GOALS.md`: goals should track the roadmap milestones above (Deploy the Engine → RightNote Bridge → Triage-to-Todoist → Multi-Modal Capture → Custom Task System). Track execution in a new Todoist project once the goal structure exists.
+
+## Open questions
+
+- **Vault destination:** agent-second-brain defaults to Obsidian. Connor also has `Deriv8`, his own AI-agent-controllable PKM fork, with its own vision/goals already in flight. Recommendation: keep Obsidian for the MVP since `autograph` is built specifically for it; revisit a Deriv8 integration later rather than disrupting two projects' roadmaps at once.
+- **Deployment target:** upstream agent-second-brain assumes a cheap VPS (systemd services included). Connor has `hetznerCO` already provisioned with an established CI/CD pattern. Recommendation: deploy there when ready, rather than running only on the Mac — but this hasn't been confirmed.
+- **Handwritten-note path:** AirDrop-to-local-folder (consistent with RightNote's local-first stance, needs a small new bridge) vs. forward-to-Telegram-bot (works today, zero build, but leaves the local-first principle). Recommendation: start with the Telegram fallback now, build the local bridge when RightNote's other capture modes are built anyway.
+
+## Changelog
+
+- 2026-08-07 v2 — Consolidated three previously-independent efforts (RightNote, smartfolder-Genius, and this repo, agent-second-brain) into one vision after discovering all three existed simultaneously. Promoted agent-second-brain to primary engine (most mature, already solves capture/memory/reminders/self-healing). Added the inbox/triage-to-Todoist bridge as new work, with a full custom task-system rebuild named as an explicit Later goal. Superseded the v1 draft written earlier the same day in `smartfolder-Genius/VISION.md`.
