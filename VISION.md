@@ -2,7 +2,7 @@
 
 > One-sentence north star: every thought Connor captures — spoken, typed, filmed, photographed, or handwritten — and every half-built project he starts, becomes routed, structured, actioned data automatically, so brilliant ideas and brilliant code both turn into shipped, monetized work instead of dust.
 
-_Last updated: 2026-08-07 · Version: v6_
+_Last updated: 2026-08-08 · Version: v7_
 
 ## What it is
 
@@ -44,6 +44,7 @@ Say it, type it, film it, or photograph it — it becomes typed, linked knowledg
 6. **Project portfolio scan → synthesis → ship reminders.** New: a periodic scan across `~/Developer`, Connor's GitHub account, and his Todoist projects, filed into the same graph as a `Project` entity type. Surfaces dormancy ("last touched 3 weeks ago, looked 80% done"), cross-project connections ("these three projects solve overlapping problems"), and reminders to revive/ship — using the same self-scheduled cron already built for #5, not a new scheduler.
 7. **Monetization/distribution ideation.** New: for each surfaced project, the engine proposes unconventional ways to ship, distribute, and monetize it — favoring creative angles over the obvious "SaaS + Stripe" default — and files the ideas as linked cards against that project, not as a one-off chat answer that evaporates.
 8. **Idle-capacity idea execution.** New, and the highest-leverage/highest-risk piece: when Connor isn't actively driving Claude Code or Codex, the vault is "self-propagating" — it pulls the next highest-salience queued idea (from note extraction or the portfolio scanner) and turns it into an actual build session, using the existing `autonomous` skill. Backs off automatically once Connor's own usage crosses a threshold, so it never competes with active work. This is a distinct, later capability from everything else here — see Principles and Open Questions.
+9. **Workflow audit → skill authoring.** New: a third discovery source alongside capture and the portfolio scanner — a structured, scored interview ("what triggers this, what are the steps, how often, how many hours/month, how repeatable, how much judgment does it need") that surfaces Connor's actual recurring business/life processes (BD pipeline, content workflow, etc.), not just stray thoughts or dormant code. High-scoring workflows (repeatable, low-judgment) get turned into real, reusable Claude Code skills via the existing `skill-creator` skill, fed either by talking the process through (voice capture, same pipeline as everything else) or by walking through it live. This is the concrete mechanism for "actionable prompts we can ingest into Claude Code" — the output is a real skill, not just a vague build session.
 
 ## System modules
 
@@ -57,6 +58,8 @@ Say it, type it, film it, or photograph it — it becomes typed, linked knowledg
 - **SMS bridge (new)** — Twilio number + webhook feeding the same ingestion pipeline. New credential/cost, chosen specifically to work without a phone unlocked to an app.
 - **Email bridge (new)** — polls Gmail (via the connected MCP tools) for a dedicated capture label, ingests only tagged threads.
 - **Idle-Capacity Idea Executor (new, Later)** — watches whether Connor is actively using Claude Code/Codex; below a usage threshold, dequeues the highest-salience backlog item and hands it to the `autonomous` skill to actually build. This is unattended code-writing triggered by idle detection rather than a direct request — it needs its own explicit design/confirmation pass before being built, not just a vision-doc mention (see Open Questions).
+- **Workflow Audit interview (new)** — a Clone-Score-style scored interview (repeatability 1-5 × judgment-required 1-5) that discovers automatable recurring workflows outside the code/notes graph entirely. Output feeds the same idea backlog as everything else.
+- **Skill-authoring bridge (new)** — turns a high-scoring workflow (or any captured "here's how I do X") into a real Claude Code skill via the existing `skill-creator` skill, instead of leaving it as a note that describes a process nobody automated.
 
 ## Data model implications
 
@@ -70,6 +73,7 @@ Say it, type it, film it, or photograph it — it becomes typed, linked knowledg
 - Telegram stays the primary chat interface (already built).
 - RightNote stays a minimal menu-bar recorder — no processing UI added there.
 - No new UI required for the MVP; the "you'll see it in Todoist" loop is the actionable-item UX.
+- **Later:** a self-contained interactive HTML map (one file, inline CSS/JS, no server) per workflow/skill/project — nodes color-coded by who executes each step (AI vs. Connor vs. an external tool), hover-to-highlight connections, click for a detail panel (trigger, tools, output, approval points). Generated from a spec/skill file, not hand-built. Reuses the `diagram`/`web-artifacts-builder` skills already available rather than a bespoke renderer.
 
 ## MVP boundary
 
@@ -80,8 +84,8 @@ Say it, type it, film it, or photograph it — it becomes typed, linked knowledg
 ## Roadmap (vision → milestones)
 
 - **Now:** Get agent-second-brain actually running (bootstrap + Telegram bot + vault), bridge RightNote's voice notes in as a second capture channel, ship the triage → Todoist dispatch bridge. This is the whole original ask, done properly instead of three separate half-builds.
-- **Next:** Four tracks, roughly in parallel once Now is proven: (a) RightNote grows video/text/handwritten-photo capture (porting smartfolder-Genius's content providers for local ingestion), including the daily-notebook OCR pass with highlight-salience weighting, refine triage confidence-gating; (b) the **Portfolio Intelligence Scanner** — scan `~/Developer` + GitHub + Todoist, surface dormant/connected projects, generate ship-reminders and monetization ideas; (c) the **SMS bridge** (Twilio) and **email bridge** (Gmail label-triggered) as two more capture channels feeding the same pipeline; (d) a plain **idea backlog** (queued, salience-ranked, from notes, email, SMS, and the portfolio scanner) as the prerequisite for Later's executor. (a), (b), and (c) are called out as high-priority within Next given how acutely Connor feels this specific pain.
-- **Later:** Per Connor's explicit direction — **build a fully custom task-management system that replaces Todoist entirely**, native to this engine instead of bridging out to Todoist's API. The **Idle-Capacity Idea Executor** — autonomous building during genuinely idle time, throttled against active usage — once the backlog and portfolio scanner are proven and Connor has explicitly signed off on wiring up unattended builds. Also later: Filer-parity general "any folder gets an agent" features, revisited as their own vision if still wanted once the core loop is proven.
+- **Next:** Five tracks, roughly in parallel once Now is proven: (a) RightNote grows video/text/handwritten-photo capture (porting smartfolder-Genius's content providers for local ingestion), including the daily-notebook OCR pass with highlight-salience weighting, refine triage confidence-gating; (b) the **Portfolio Intelligence Scanner** — scan `~/Developer` + GitHub + Todoist, surface dormant/connected projects, generate ship-reminders and monetization ideas; (c) the **SMS bridge** (Twilio) and **email bridge** (Gmail label-triggered) as two more capture channels feeding the same pipeline; (d) the **Workflow Audit** interview + skill-authoring bridge — cheap to build (a prompt + `skill-creator`), high-leverage, surfaces automatable processes the other discovery sources can't see; (e) a plain **idea backlog** (queued, salience-ranked, from notes, email, SMS, workflow audit, and the portfolio scanner) as the prerequisite for Later's executor. (a), (b), (c), and (d) are called out as high-priority within Next.
+- **Later:** Per Connor's explicit direction — **build a fully custom task-management system that replaces Todoist entirely**, native to this engine instead of bridging out to Todoist's API. The **Idle-Capacity Idea Executor** — autonomous building during genuinely idle time, throttled against active usage — once the backlog and portfolio scanner are proven and Connor has explicitly signed off on wiring up unattended builds. The **visual workflow map** (self-contained HTML, generated per skill/spec). Also later: Filer-parity general "any folder gets an agent" features, revisited as their own vision if still wanted once the core loop is proven.
 
 ## How to decompose this
 
@@ -103,6 +107,7 @@ This platform isn't meant to stay an island. Confirmed-real, active sibling proj
 
 ## Changelog
 
+- 2026-08-08 v7 — Added a third idea-discovery source: the Workflow Audit (scored interview surfacing automatable recurring business/life processes) plus a skill-authoring bridge that turns high-scoring workflows into real Claude Code skills via `skill-creator`. Added the self-contained interactive HTML workflow map as a concrete Later UI mechanism. Methodology adapted from an external article (Miles Deutscher's "clone yourself with Claude" system) — credited here, not treated as gospel; kept only the pieces that concretely extend what this vision already needed.
 - 2026-08-07 v6 — Added two more capture channels: SMS via a dedicated Twilio number (chosen over free Telegram specifically to work without opening an app, on the go) and email via a Gmail capture label (using already-connected Gmail MCP tools), scanned rather than ingesting the whole inbox. Both placed in Next alongside the other capture-expansion work.
 - 2026-08-07 v5 — Resolved the vault-destination question: Deriv8 (Connor's own Logseq/AGPL-3.0 fork), not vanilla Obsidian (which is closed-source and can't actually be built on). Added an Ecosystem section naming AMANI and ELOHIME (confirmed real, active) and SUPERGLUU (not yet built) as the eventual flywheel this platform's output queues into.
 - 2026-08-07 v4 — Grounded handwritten-note capture in a real example (dated Cornell-style daily notebook, highlight/circle/star marks as a salience signal) and added the Idle-Capacity Idea Executor: a "self-propagating vault" that turns queued backlog ideas into actual `autonomous`-skill build sessions during genuinely idle time, throttled against active usage. Flagged as needing its own explicit confirmation before implementation, not authorized by this vision doc alone.
