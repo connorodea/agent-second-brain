@@ -18,15 +18,16 @@
 
 **Non-goals (out of scope now):** RightNote video/text/handwritten capture modes; a full custom task-management system replacing Todoist; Filer-parity features (trust tiers, delegation, chat panel, MCP registry); pulling `myvoice` into this pipeline; the Idle-Capacity Idea Executor (needs its own confirmation pass before any code is written).
 
-**MVP boundary (Now):** Deploy agent-second-brain on `hetznerCO`. Bridge RightNote's existing voice notes into its ingestion pipeline. Build the triage → Todoist dispatch bridge.
+**MVP boundary (Now):** Deploy agent-second-brain on `hetznerLR`. Bridge RightNote's existing voice notes into its ingestion pipeline. Build the triage → Todoist dispatch bridge.
 
 ## Goals
 
 ### Goal 1 — The engine is live and reachable 24/7  ·  serves: local-first / one-engine-not-three / reuse-before-rebuild
-**Done when:** agent-second-brain is deployed on `hetznerCO`, the Telegram bot responds to a real message, a test card writes correctly into the Deriv8 vault, and the watchdog recovers from a killed session without manual intervention.
-**Status:** todo
+**Done when:** agent-second-brain is deployed on `hetznerLR`, the Telegram bot responds to a real message, a test card writes correctly into the Deriv8 vault, and the watchdog recovers from a killed session without manual intervention.
+**Status:** blocked (1a needs Connor's call on vault-sync mechanism; 1a/1c also need TELEGRAM_BOT_TOKEN + ALLOWED_USER_IDS + DEEPGRAM_API_KEY, none of which exist yet)
 **Sub-goals:**
-- [ ] **1a** Bootstrap agent-second-brain on `hetznerCO` (systemd services from upstream `deploy/`) — _advances:_ gets the persistent session actually running somewhere always-on — _accept:_ `systemctl status` green for bot/watchdog/cron services
+- [ ] **1a** Bootstrap agent-second-brain on `hetznerLR` (systemd services from upstream `deploy/`) — _advances:_ gets the persistent session actually running somewhere always-on — _accept:_ `systemctl status` green for bot/watchdog/cron services — **BLOCKED, waiting on Connor for: (1) vault-sync mechanism, (2) Telegram bot token via @BotFather, (3) Connor's Telegram user id, (4) a Deepgram API key**
+- [ ] **1e** Resolve vault sync: `~/Deriv8` is local-only (not git-tracked) and `hetznerLR` needs write access to it — _advances:_ unblocks 1a — _accept:_ Connor's chosen mechanism (git-sync / rsync / other) implemented and verified with a round-trip write
 - [ ] **1b** Verify `autograph` card output renders correctly in Deriv8's Logseq-based (block-oriented) model, not just Obsidian's (file-oriented) — _advances:_ closes the compatibility gap the vision flagged but didn't verify — _accept:_ a real card written by autograph opens correctly in Deriv8
 - [ ] **1c** End-to-end Telegram test: send a real voice note, confirm it becomes a typed card in the vault — _advances:_ proves the already-built half of the loop actually works post-deploy — _accept:_ card appears with correct type/content within the expected processing window
 - [ ] **1d** Kill the session, confirm the watchdog restarts it unattended — _advances:_ proves the self-healing claim, not just trusts it — _accept:_ session back up within upstream's documented recovery window
@@ -88,8 +89,10 @@ None currently — every active goal traces to a named pillar, and nothing in fl
 ```text
 /goal Goal 1: The engine is live and reachable 24/7
 Serves vision pillar: local-first / one-engine-not-three / reuse-before-rebuild.
-Done when: agent-second-brain deployed on hetznerCO, Telegram bot verified end-to-end,
+Done when: agent-second-brain deployed on hetznerLR, Telegram bot verified end-to-end,
 a test card confirmed in the Deriv8 vault, watchdog recovery verified by killing the session.
+Blocked on: vault-sync mechanism (1e) + Telegram bot token + Connor's Telegram user id +
+a Deepgram API key. Confirm all four exist before starting 1a.
 Non-goals: don't build RightNote/SMS/email bridges here — that's Goals 2 and 4.
 Read GOALS.md + VISION.md first. Report what shipped + what's left.
 ```
@@ -143,4 +146,5 @@ skip cards already triaged this cycle.
 ```
 
 ## Changelog
+- 2026-08-09 v2 — Corrected deployment target hetznerCO → hetznerLR (Connor's direct correction). Added sub-goal 1e (vault-sync mechanism, still open) and named Goal 1's other real blockers explicitly: Telegram bot token, Connor's Telegram user id, a Deepgram API key — none of which exist yet.
 - 2026-08-08 v1 — Initial cascade from VISION.md v8. Five goals (three Now, two Next) plus one ongoing loop. Goal 4 flagged blocked pending Connor's Twilio credentials.
