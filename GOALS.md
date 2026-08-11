@@ -24,9 +24,9 @@
 
 ### Goal 1 — The engine is live and reachable 24/7  ·  serves: local-first / one-engine-not-three / reuse-before-rebuild
 **Done when:** agent-second-brain is deployed on `hetznerCO`, the Telegram bot responds to a real message, a test card writes correctly into the Deriv8 vault, and the watchdog recovers from a killed session without manual intervention.
-**Status:** blocked (1a/1c need TELEGRAM_BOT_TOKEN + ALLOWED_USER_IDS + DEEPGRAM_API_KEY, none of which exist yet; hosting + sync mechanism now resolved)
+**Status:** blocked (1a/1c need TELEGRAM_BOT_TOKEN + ALLOWED_USER_IDS; DEEPGRAM_API_KEY done 2026-08-10, verified working, in .env; hosting + sync mechanism resolved)
 **Sub-goals:**
-- [ ] **1a** Bootstrap agent-second-brain on `hetznerCO` (systemd services from upstream `deploy/`) — _advances:_ gets the persistent session actually running somewhere always-on — _accept:_ `systemctl status` green for bot/watchdog/cron services — **BLOCKED, waiting on Connor for: (1) Telegram bot token via @BotFather, (2) Connor's Telegram user id, (3) a Deepgram API key**
+- [ ] **1a** Bootstrap agent-second-brain on `hetznerCO` (systemd services from upstream `deploy/`) — _advances:_ gets the persistent session actually running somewhere always-on — _accept:_ `systemctl status` green for bot/watchdog/cron services — **BLOCKED, waiting on Connor for: (1) Telegram bot token via @BotFather, (2) Connor's Telegram user id — both scriptable via `scripts/telegram_bootstrap.py`, needs TG_API_ID/TG_API_HASH from my.telegram.org**
 - [ ] **1e** Vault sync: git-init `~/Deriv8`, push to a private repo, `hetznerCO` clones/commits scoped append-only writes, event-triggered pull job locally (resolved via whiteboard discussion 2026-08-09) — _advances:_ unblocks 1a — _accept:_ a round-trip write verified both directions with no conflict on a shared file
 - [ ] **1b** Verify `autograph` card output renders correctly in Deriv8's Logseq-based (block-oriented) model, not just Obsidian's (file-oriented) — _advances:_ closes the compatibility gap the vision flagged but didn't verify — _accept:_ a real card written by autograph opens correctly in Deriv8
 - [ ] **1c** End-to-end Telegram test: send a real voice note, confirm it becomes a typed card in the vault — _advances:_ proves the already-built half of the loop actually works post-deploy — _accept:_ card appears with correct type/content within the expected processing window
@@ -147,6 +147,7 @@ skip cards already triaged this cycle.
 ```
 
 ## Changelog
+- 2026-08-10 v4 — DEEPGRAM_API_KEY resolved: CLI login had dead/under-scoped keys twice (a stale keyring key, then a device-flow session missing keys:write), worked around via a console-generated key, verified live against the API, stored in `agent-second-brain/.env` (gitignored). Goal 1's remaining blockers are now just the Telegram bot token and Connor's user id.
 - 2026-08-09 v3 — Hosting corrected again: hetznerLR → hetznerCO, after a four-perspective whiteboard discussion flagged blast-radius risk to Lock Rooms' production traffic. Vault-sync mechanism resolved (git-sync, scoped append-only writes, event-triggered pull) — both whiteboard perspectives converged on this shape independently. Goal 1's remaining blockers are now just the three missing credentials.
 - 2026-08-09 v2 — Corrected deployment target hetznerCO → hetznerLR (Connor's direct correction). Added sub-goal 1e (vault-sync mechanism, still open) and named Goal 1's other real blockers explicitly: Telegram bot token, Connor's Telegram user id, a Deepgram API key — none of which exist yet.
 - 2026-08-08 v1 — Initial cascade from VISION.md v8. Five goals (three Now, two Next) plus one ongoing loop. Goal 4 flagged blocked pending Connor's Twilio credentials.
