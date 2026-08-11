@@ -1,7 +1,19 @@
 # Connor's Second Brain — Goals (north-star cascade)
 
 > North star: every thought Connor captures, every recurring process he's never written down, and every half-built project he starts — becomes routed, structured, actioned data automatically, so brilliant ideas, brilliant processes, and brilliant code all turn into shipped, monetized work instead of dust.
-> Source: VISION.md (v8) · _Last updated: 2026-08-08 · Plan version: v1_
+> Source: VISION.md (v10) · _Last updated: 2026-08-11 · Plan version: v5_
+
+## Milestones — hit in order, no circling back
+
+| # | Milestone | Done when | Status |
+|---|---|---|---|
+| M1 | Credentials complete | Telegram token + user id + Twilio token in hand (Deepgram already done) | 1/4 |
+| M2 | Engine deployed | Goal 1 done — hetznerCO live, bot verified, vault write confirmed, watchdog verified | blocked on M1 |
+| M3 | First real loop closed | Goals 2+3 done — a real RightNote voice note becomes a Todoist task, end to end, zero manual steps | blocked on M2 |
+| M4 | Multi-channel capture | Goal 4 done — SMS + email also feed the same loop | blocked on M1 (Twilio) |
+| M5 | Intelligence layer | Goal 5 done — portfolio scan + workflow audit surface a real finding | blocked on M3 |
+
+**Rule:** a milestone is binary — done or not, no partial credit. Once M1's three architecture decisions (hosting, vault-sync mechanism, engine choice) were locked 2026-08-09, they don't get re-opened without new evidence, not just second-guessing — that flip-flop already cost three docs revisions and is the reason this table exists.
 
 ## Alignment anchors (every goal must serve these)
 
@@ -147,6 +159,7 @@ skip cards already triaged this cycle.
 ```
 
 ## Changelog
+- 2026-08-11 v5 — Added a Milestones table (M1-M5, sequential, binary done/not-done) so progress is trackable without re-deriving it from goal prose each time. Codified the "locked decisions don't reopen without new evidence" rule explicitly, after the hetznerCO→hetznerLR→hetznerCO flip-flop cost three docs revisions.
 - 2026-08-10 v4 — DEEPGRAM_API_KEY resolved: CLI login had dead/under-scoped keys twice (a stale keyring key, then a device-flow session missing keys:write), worked around via a console-generated key, verified live against the API, stored in `agent-second-brain/.env` (gitignored). Goal 1's remaining blockers are now just the Telegram bot token and Connor's user id.
 - 2026-08-09 v3 — Hosting corrected again: hetznerLR → hetznerCO, after a four-perspective whiteboard discussion flagged blast-radius risk to Lock Rooms' production traffic. Vault-sync mechanism resolved (git-sync, scoped append-only writes, event-triggered pull) — both whiteboard perspectives converged on this shape independently. Goal 1's remaining blockers are now just the three missing credentials.
 - 2026-08-09 v2 — Corrected deployment target hetznerCO → hetznerLR (Connor's direct correction). Added sub-goal 1e (vault-sync mechanism, still open) and named Goal 1's other real blockers explicitly: Telegram bot token, Connor's Telegram user id, a Deepgram API key — none of which exist yet.
